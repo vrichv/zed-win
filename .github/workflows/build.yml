@@ -16,30 +16,35 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: zed-industries/zed
+          ref: main
           fetch-depth: 0
 
-      - name: Get latest v* tag
+      - name: Get latest v* tag on main
         id: get_latest_tag
         run: |
           git fetch --tags
-          echo "LATEST_TAG=$(git describe --tags --abbrev=0 --match "v*")" >> $GITHUB_ENV
-          git checkout ${{ env.LATEST_TAG }}
+          $latestTag = git describe --tags --abbrev=0 --match "v*" --first-parent main
+          echo "Latest tag on main: $latestTag"
+          echo "LATEST_TAG=$latestTag" >> $env:GITHUB_ENV
 
       - name: Check if release exists
         id: check_release
         run: |
-          if gh release view ${{ env.LATEST_TAG }} &>/dev/null; then
-            echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "RELEASE_EXISTS=false" >> $GITHUB_ENV
-          fi
+          if (gh release view ${{ env.LATEST_TAG }} 2>&1 | Out-Null) {
+            echo "RELEASE_EXISTS=true" >> $env:GITHUB_ENV
+          } else {
+            echo "RELEASE_EXISTS=false" >> $env:GITHUB_ENV
+          }
 
       - name: Skip if release exists
         if: env.RELEASE_EXISTS == 'true'
         run: |
           echo "Release for ${{ env.LATEST_TAG }} already exists. Skipping build."
           exit 0
-
+          
+      - name: Checkout latest tag
+        run: git checkout ${{ env.LATEST_TAG }}
+        
       - name: Install rust nightly
         uses: actions-rs/toolchain@v1
         with:
