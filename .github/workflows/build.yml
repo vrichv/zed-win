@@ -17,7 +17,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $latestTag = (gh release list -R zed-industries/zed -L 1 --json tagName -q '.[0].tagName')
+          $latestTag = (gh release list -R zed-industries/zed -L 3 --json tagName,isLatest -q '.[] | select(.isLatest == true) | .tagName')
           echo "Latest Zed release tag: $latestTag"
           echo "LATEST_TAG=$latestTag" >> $env:GITHUB_ENV
 
@@ -27,15 +27,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ourLatestRelease = ""
-          $releases = gh release list -L 1 --json name -q '.[].name'
-          if ($releases) {
-            $ourLatestRelease = $releases[0]
-            echo "Our latest release: $ourLatestRelease"
-            echo "OUR_LATEST_RELEASE=$ourLatestRelease" >> $env:GITHUB_ENV
-          } else {
-            echo "No releases found. Setting OUR_LATEST_RELEASE to empty string."
-            echo "OUR_LATEST_RELEASE=" >> $env:GITHUB_ENV
+          try {
+            $releases = gh release list -L 1 --json name -q '.[].name'
+            if ($releases) {
+              $ourLatestRelease = $releases[0]
+              echo "Our latest release: $ourLatestRelease"
+            } else {
+              echo "No releases found. Setting OUR_LATEST_RELEASE to empty string."
+            }
+          } catch {
+            echo "Error fetching releases. Setting OUR_LATEST_RELEASE to empty string."
           }
+          echo "OUR_LATEST_RELEASE=$ourLatestRelease" >> $env:GITHUB_ENV
 
       - name: Compare and checkout if needed
         run: |
