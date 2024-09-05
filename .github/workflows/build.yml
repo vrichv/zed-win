@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Get latest Zed release tag
         id: get_latest_tag
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $latestTag = (gh release list -R zed-industries/zed -L 1 --json tagName -q '.[0].tagName')
           echo "Latest Zed release tag: $latestTag"
@@ -21,6 +23,8 @@ jobs:
 
       - name: Get our latest release name
         id: get_our_release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $ourLatestRelease = ""
           $releases = gh release list -L 1 --json name -q '.[].name'
