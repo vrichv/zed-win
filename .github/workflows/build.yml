@@ -12,39 +12,47 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
+      - name: Get latest Zed release tag
+        id: get_latest_tag
+        run: |
+          $latestTag = (Invoke-RestMethod -Uri "https://api.github.com/repos/zed-industries/zed/releases/latest").tag_name
+          echo "Latest Zed release tag: $latestTag"
+          echo "LATEST_TAG=$latestTag" >> $env:GITHUB_ENV
+
+      - name: Get our latest release name
+        id: get_our_release
+        run: |
+          $ourLatestRelease = ""
+          $releases = gh release list -L 1 --json name -q '.[].name'
+          if ($releases) {
+            $ourLatestRelease = $releases[0]
+            echo "Our latest release: $ourLatestRelease"
+            echo "OUR_LATEST_RELEASE=$ourLatestRelease" >> $env:GITHUB_ENV
+          } else {
+            echo "No releases found. Setting OUR_LATEST_RELEASE to empty string."
+            echo "OUR_LATEST_RELEASE=" >> $env:GITHUB_ENV
+          }
+
+      - name: Compare and checkout if needed
+        run: |
+          if ("${{ env.OUR_LATEST_RELEASE }}" -eq "${{ env.LATEST_TAG }}") {
+            echo "Our latest release matches Zed's latest tag. Exiting."
+            exit 0
+          } else {
+            echo "Checking out Zed's latest tag: ${{ env.LATEST_TAG }}"
+          }
+
+      - name: Checkout Zed repository
         uses: actions/checkout@v3
         with:
           repository: zed-industries/zed
-          ref: main
-          fetch-depth: 0
+          ref: ${{ env.LATEST_TAG }}
+          fetch-depth: 1
 
-      - name: Get latest v* tag on main
-        id: get_latest_tag
+      - name: Set up for build
         run: |
-          git fetch --tags
-          $latestTag = git describe --tags --abbrev=0 --match "v*" --first-parent main
-          echo "Latest tag on main: $latestTag"
-          echo "LATEST_TAG=$latestTag" >> $env:GITHUB_ENV
+          echo "Ready to build ${{ env.LATEST_TAG }}"
 
-      - name: Check if release exists
-        id: check_release
-        run: |
-          if (gh release view ${{ env.LATEST_TAG }} 2>&1 | Out-Null) {
-            echo "RELEASE_EXISTS=true" >> $env:GITHUB_ENV
-          } else {
-            echo "RELEASE_EXISTS=false" >> $env:GITHUB_ENV
-          }
-
-      - name: Skip if release exists
-        if: env.RELEASE_EXISTS == 'true'
-        run: |
-          echo "Release for ${{ env.LATEST_TAG }} already exists. Skipping build."
-          exit 0
-          
-      - name: Checkout latest tag
-        run: git checkout ${{ env.LATEST_TAG }}
-        
       - name: Install rust nightly
         uses: actions-rs/toolchain@v1
         with:
