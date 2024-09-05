@@ -15,7 +15,7 @@ jobs:
       - name: Get latest Zed release tag
         id: get_latest_tag
         run: |
-          $latestTag = (Invoke-RestMethod -Uri "https://api.github.com/repos/zed-industries/zed/releases/latest").tag_name
+          $latestTag = (gh release list -R zed-industries/zed -L 1 --json tagName -q '.[0].tagName')
           echo "Latest Zed release tag: $latestTag"
           echo "LATEST_TAG=$latestTag" >> $env:GITHUB_ENV
 
