@@ -1,4 +1,4 @@
-name: Build Zed Nightly
+name: Build Zed Lastest Release
 
 on:
   schedule:
@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    outputs:
+      latest_tag: ${{ steps.get_latest_tag.outputs.latest_tag }}
 
     steps:
       - name: Get latest Zed release tag
@@ -19,7 +21,7 @@ jobs:
         run: |
           $latestTag = (gh release list -R zed-industries/zed -L 3 --json tagName,isLatest -q '.[] | select(.isLatest == true) | .tagName')
           echo "Latest Zed release tag: $latestTag"
-          echo "LATEST_TAG=$latestTag" >> $env:GITHUB_ENV
+          echo "latest_tag=$latestTag" >> $env:GITHUB_OUTPUT
 
       - name: Get our latest release name
         id: get_our_release
@@ -38,23 +40,23 @@ jobs:
 
       - name: Compare and checkout if needed
         run: |
-          if ("${{ env.OUR_LATEST_RELEASE }}" -eq "${{ env.LATEST_TAG }}") {
+          if ("${{ env.OUR_LATEST_RELEASE }}" -eq "${{ steps.get_latest_tag.outputs.latest_tag }}") {
             echo "Our latest release matches Zed's latest tag. Exiting."
             exit 0
           } else {
-            echo "Checking out Zed's latest tag: ${{ env.LATEST_TAG }}"
+            echo "Checking out Zed's latest tag: ${{ steps.get_latest_tag.outputs.latest_tag }}"
           }
 
       - name: Checkout Zed repository
         uses: actions/checkout@v3
         with:
           repository: zed-industries/zed
-          ref: ${{ env.LATEST_TAG }}
+          ref: ${{ steps.get_latest_tag.outputs.latest_tag }}
           fetch-depth: 1
 
       - name: Set up for build
         run: |
-          echo "Ready to build ${{ env.LATEST_TAG }}"
+          echo "Ready to build ${{ steps.get_latest_tag.outputs.latest_tag }}"
 
       - name: Install rust nightly
         uses: actions-rs/toolchain@v1
@@ -97,8 +99,8 @@ jobs:
       - name: Upload release build artifact to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ env.LATEST_TAG }}
-          tag_name: ${{ env.LATEST_TAG }}
+          name: ${{ needs.build.outputs.latest_tag }}
+          tag_name: ${{ needs.build.outputs.latest_tag }}
           draft: false
           make_latest: true
           files: zed-windows.zip
