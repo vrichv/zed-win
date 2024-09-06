@@ -18,7 +18,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          latestTag=$(gh release list -R zed-industries/zed -L 3 --json tagName,isLatest -q '.[] | select(.isLatest == true and .tagName | startswith("v")) | .tagName')
+          latestTag=$(gh release list -R zed-industries/zed -L 3 --json tagName,isLatest -q '.[] | select(.isLatest == true) | select(.tagName | startswith("v")) | .tagName')
           echo "Latest Zed release tag: $latestTag"
           echo "latest_tag=$latestTag" >> $GITHUB_OUTPUT
 
@@ -27,7 +27,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          releases=$(gh release list -R vrichv/zed-win -L 3 --json tagName,isLatest -q '.[] | select(.isLatest == true and .tagName | startswith("v")) | .tagName')
+          releases=$(gh release list -R vrichv/zed-win -L 3 --json tagName,isLatest -q '.[] | select(.isLatest == true) | select(.tagName | startswith("v")) | .tagName')
           echo "Our latest release: $releases"
           echo "OUR_LATEST_RELEASE=$releases" >> $GITHUB_ENV
 
