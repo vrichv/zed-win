@@ -29,8 +29,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $releases =  (gh release list -R vrichv/zed-win -L 3 --json tagName,isLatest -q '.[] | select(.isLatest == true) | .tagName')
-          echo "Our latest release: $ourLatestRelease"
-          echo "OUR_LATEST_RELEASE=$release" >> $env:GITHUB_ENV
+          echo "Our latest release: $releases"
+          echo "OUR_LATEST_RELEASE=$releases" >> $env:GITHUB_ENV
 
       - name: Compare and checkout if needed
         run: |
