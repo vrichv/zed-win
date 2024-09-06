@@ -32,16 +32,19 @@ jobs:
           echo "Our latest release: $releases"
           echo "OUR_LATEST_RELEASE=$releases" >> $env:GITHUB_ENV
 
-      - name: Compare and checkout if needed
+      - name: Compare releases
+        id: compare
         run: |
           if ("${{ env.OUR_LATEST_RELEASE }}" -eq "${{ steps.get_latest_tag.outputs.latest_tag }}") {
-            echo "Our latest release matches Zed's latest tag. Exiting."
-            exit 0
+            echo "Our latest release matches Zed's latest tag. Stopping workflow."
+            echo "proceed=false" >> $env:GITHUB_OUTPUT
           } else {
-            echo "Checking out Zed's latest tag: ${{ steps.get_latest_tag.outputs.latest_tag }}"
+            echo "Proceeding with build for Zed's latest tag: ${{ steps.get_latest_tag.outputs.latest_tag }}"
+            echo "proceed=true" >> $env:GITHUB_OUTPUT
           }
 
       - name: Checkout Zed repository
+        if: steps.compare.outputs.proceed == 'true'
         uses: actions/checkout@v3
         with:
           repository: zed-industries/zed
@@ -49,10 +52,12 @@ jobs:
           fetch-depth: 1
 
       - name: Set up for build
+        if: steps.compare.outputs.proceed == 'true'
         run: |
           echo "Ready to build ${{ steps.get_latest_tag.outputs.latest_tag }}"
 
       - name: Install rust nightly
+        if: steps.compare.outputs.proceed == 'true'
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -60,15 +65,18 @@ jobs:
           target: wasm32-wasi
 
       - name: Rust Cache
+        if: steps.compare.outputs.proceed == 'true'
         uses: Swatinem/rust-cache@v2.7.3
 
       - name: Build release
+        if: steps.compare.outputs.proceed == 'true'
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --release
 
       - name: Archive build
+        if: steps.compare.outputs.proceed == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: zed-release
@@ -79,6 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    if: needs.build.outputs.proceed == 'true'
 
     steps:
       - name: Download release artifact
