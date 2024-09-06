@@ -28,7 +28,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $releases = gh release list -L 1 --json name -q '.[].name' || true
+          $releases = gh release list -R vrichv/zed-win -L 1 --json name -q '.[].name'
           $ourLatestRelease = ""
           if ($releases) {
             $ourLatestRelease = $releases[0]
