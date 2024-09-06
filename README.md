@@ -1,13 +1,9 @@
-# Unofficial nightly builds of Zed for Windows
+# Unofficial release builds of Zed for Windows
 
-## Installation
+Only release versions are included, and pre-release versions may not be included.
 
-Install using [Scoop](https://scoop.sh/)
-
-```
-scoop bucket add versions
-scoop install versions/zed-nightly
-```
+nightly builds:
+https://github.com/deevus/zed-windows-builds/releases
 
 ## Is it safe?
 
