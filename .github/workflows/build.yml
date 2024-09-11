@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       latest_tag: ${{ steps.get_latest_tag.outputs.latest_tag }}
+      proceed: ${{ steps.compare.outputs.proceed }}
 
     steps:
       - name: Get latest Zed release tag
