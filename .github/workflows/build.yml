@@ -19,7 +19,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          latestTag=$(gh release list -R zed-industries/zed -L 3 --json tagName,isLatest -q '.[] | select(.isLatest == true) | select(.tagName | startswith("v")) | .tagName')
+          latestTag=$(gh release list -R zed-industries/zed -L 10 --json tagName,isLatest -q '.[] | select(.isLatest == true) | select(.tagName | startswith("v")) | .tagName')
           echo "Latest Zed release tag: $latestTag"
           echo "latest_tag=$latestTag" >> $GITHUB_OUTPUT
 
