@@ -28,14 +28,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          releases=$(gh release list -R vrichv/zed-win -L 3 --json tagName,isLatest -q '.[] | select(.isLatest == true) | select(.tagName | startswith("v")) | .tagName')
+          releases=$(gh release list -R vrichv/zed-win -L 10 --json tagName,isLatest -q '.[] | select(.isLatest == true) | select(.tagName | startswith("v")) | .tagName')
           echo "Our latest release: $releases"
           echo "OUR_LATEST_RELEASE=$releases" >> $GITHUB_ENV
 
       - name: Compare releases
         id: compare
         run: |
-          if [ "${{ env.OUR_LATEST_RELEASE }}" = "${{ steps.get_latest_tag.outputs.latest_tag }}" ]; then
+          if [ -z "${{ steps.get_latest_tag.outputs.latest_tag  }}" ] ||  [ "${{ env.OUR_LATEST_RELEASE }}" = "${{ steps.get_latest_tag.outputs.latest_tag }}" ]; then
             echo "Our latest release matches Zed's latest tag. Stopping workflow."
             echo "proceed=false" >> $GITHUB_OUTPUT
           else
