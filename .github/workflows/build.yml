@@ -52,7 +52,7 @@ jobs:
       - name: Enable long paths in Git
         run: |
           git config --system core.longpaths true
-          
+
       - name: Enable long paths in Windows
         shell: powershell
         run: |
@@ -68,7 +68,24 @@ jobs:
 
       - name: Set up for build
         run: |
+          pwd
+          cd zed-industries/zed
           echo "Ready to build ${{ needs.check.outputs.latest_tag }}"
+          if test -f ".cargo/config.toml"; then
+            cat >> .cargo/config.toml << EOL
+            [profile.release]
+            debug = false
+            lto = "fat"
+            opt-level = 3
+            codegen-units = 1
+            panic = "abort"
+            strip = true
+            EOL
+            echo "Successfully appended build parameters to .cargo/config.toml"
+            cat .cargo/config.toml
+          else
+            echo "Error: .cargo/config.toml file does not exist"
+          fi
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
@@ -78,7 +95,7 @@ jobs:
           target: wasm32-wasip1
 
       - name: Rust Cache
-        uses: Swatinem/rust-cache@v2.7.3
+        uses: Swatinem/rust-cache@v2
 
       - name: Build release
         uses: actions-rs/cargo@v1
