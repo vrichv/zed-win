@@ -72,7 +72,7 @@ jobs:
           pwd
           cd zed-industries/zed
           echo "Ready to build ${{ needs.check.outputs.latest_tag }}"
-          if test -f ".cargo/config.toml"; then
+          if [ -f ".cargo/config.toml" ]; then
             cat >> .cargo/config.toml << EOL
             [profile.release]
             debug = false
