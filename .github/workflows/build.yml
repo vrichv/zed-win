@@ -68,12 +68,15 @@ jobs:
           fetch-depth: 1
 
       - name: Set up for build
+        shell: powershell
         run: |
-          pwd
-          cd zed-industries/zed
-          echo "Ready to build ${{ needs.check.outputs.latest_tag }}"
-          if [ -f ".cargo/config.toml" ]; then
-            cat >> .cargo/config.toml << EOL
+          $pwd = Get-Location
+          Write-Output "Current directory: $pwd"
+          Set-Location zed-industries/zed
+          Write-Output "Ready to build ${{ needs.check.outputs.latest_tag }}"
+          if (Test-Path ".cargo/config.toml") {
+            @"
+
             [profile.release]
             debug = false
             lto = "fat"
@@ -81,12 +84,12 @@ jobs:
             codegen-units = 1
             panic = "abort"
             strip = true
-            EOL
-            echo "Successfully appended build parameters to .cargo/config.toml"
-            cat .cargo/config.toml
-          else
-            echo "Error: .cargo/config.toml file does not exist"
-          fi
+            "@ | Add-Content .cargo/config.toml
+            Write-Output "Successfully appended build parameters to .cargo/config.toml"
+            Get-Content .cargo/config.toml
+          } else {
+            Write-Output "Error: .cargo/config.toml file does not exist"
+          }
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
