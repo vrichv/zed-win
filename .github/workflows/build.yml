@@ -75,15 +75,9 @@ jobs:
           Set-Location zed-industries/zed
           Write-Output "Ready to build ${{ needs.check.outputs.latest_tag }}"
           if (Test-Path ".cargo/config.toml") {
-            @"
-[profile.release]
-debug = false
-lto = "fat"
-opt-level = 3
-codegen-units = 1
-panic = "abort"
-strip = true
-"@ | Add-Content .cargo/config.toml
+            $configString = "[profile.release]`n debug = false`n lto = `"fat`"`n opt-level = 3`n codegen-units = 1`n panic = `"abort`"`n strip = true"
+            Write-Output "Configuration string: $configString"
+            $configString | Add-Content .cargo/config.toml
             Write-Output "Successfully appended build parameters to .cargo/config.toml"
             Get-Content .cargo/config.toml
           } else {
