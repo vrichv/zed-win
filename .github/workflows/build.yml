@@ -70,9 +70,6 @@ jobs:
       - name: Set up for build
         shell: powershell
         run: |
-          $pwd = Get-Location
-          Write-Output "Current directory: $pwd"
-          Set-Location zed-industries/zed
           Write-Output "Ready to build ${{ needs.check.outputs.latest_tag }}"
           if (Test-Path ".cargo/config.toml") {
             $configString = "[profile.release]`n debug = false`n lto = `"fat`"`n opt-level = 3`n codegen-units = 1`n panic = `"abort`"`n strip = true"
